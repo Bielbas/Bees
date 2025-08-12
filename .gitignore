@@ -30,6 +30,7 @@ results.csv
 *.png
 *.bmp
 *.tiff
+*.pkl
 !example_*.jpg
 
 # IDE
