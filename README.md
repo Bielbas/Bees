@@ -47,3 +47,42 @@ This project is developed as a Bachelor's thesis and proposes a low-cost, teleph
   - Data augmentation (brightness, rotation, scale)  
 - **Metrics:** Precision/recall on bee detection; frame-rate inference speed  
 
+---
+
+## How to Use
+
+### Prerequisites
+1. Python 3.8 or higher
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Quick Start
+
+1. **Prepare Images**
+   - Add your hive entrance photos to the `input_photos/` directory
+   - Supported formats: JPG, JPEG, PNG, BMP, TIFF
+
+2. **Run Detection**
+   ```bash
+   python main.py
+   ```
+
+3. **Process**
+   - First time: manually select the hive entrance area using mouse clicks
+   - The system will process all images and generate results
+
+### Output
+- **Cropped images**: `output/cropped_*.jpg`
+- **Background image**: `output/background.jpg`  
+- **Bee masks**: `output/bee_mask_*.jpg`
+- **Visualizations**: `output/visualization_*.jpg`
+- **Results**: `results.csv` with timestamps and bee coverage percentages
+
+### Optional: Polygon Setup
+To setup the crop polygon separately:
+```bash
+python setup_polygon.py
+```
+
