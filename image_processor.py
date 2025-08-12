@@ -1,7 +1,3 @@
-"""
-Image processing utilities for bee detection project.
-"""
-
 import cv2
 import numpy as np
 from pathlib import Path

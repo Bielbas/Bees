@@ -1,7 +1,3 @@
-"""
-Manual cropping tool for selecting hive inlet area.
-"""
-
 import cv2
 import numpy as np
 

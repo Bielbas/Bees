@@ -1,22 +1,16 @@
-"""
-Bee detection and area calculation module.
-"""
-
 import cv2
 import numpy as np
 from datetime import datetime
-try:
-    from config import *
-except ImportError:
-    # Default values if config.py is not found
-    DETECTION_THRESHOLDS = [15, 25, 35, 45]
-    MIN_BEE_AREA = 20
-    MAX_BEE_AREA = 8000
-    COLOR_LOWER_BEE = [5, 20, 20]
-    COLOR_UPPER_BEE = [25, 255, 180]
-    MIN_ASPECT_RATIO = 0.3
-    MAX_ASPECT_RATIO = 3.0
-    MIN_SOLIDITY = 0.3
+
+
+DETECTION_THRESHOLDS = [15, 25, 35, 45]
+MIN_BEE_AREA = 20
+MAX_BEE_AREA = 8000
+COLOR_LOWER_BEE = [5, 20, 20]
+COLOR_UPPER_BEE = [25, 255, 180]
+MIN_ASPECT_RATIO = 0.3
+MAX_ASPECT_RATIO = 3.0
+MIN_SOLIDITY = 0.3
 
 
 class BeeDetector:
@@ -239,12 +233,6 @@ class BeeDetector:
                 'detection_method': 'color_segmentation',
                 'bee_mask': color_mask
             })
-        
-        # Debug output
-        print(f"    Debug - {filename}: {best_result['detection_method']}, "
-              f"threshold: {best_result['threshold_used']}, "
-              f"contours: {best_result['num_bee_contours']}, "
-              f"score: {best_result.get('score', 'N/A')}")
         
         return best_result
     
