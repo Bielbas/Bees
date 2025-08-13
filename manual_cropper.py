@@ -3,7 +3,7 @@ import numpy as np
 
 
 class ManualCropper:
-    """Interactive tool for manually cropping the first image."""
+    """Interactive tool for manually cropping the first image"""
     
     def __init__(self):
         self.points = []
@@ -13,6 +13,7 @@ class ManualCropper:
     
     def mouse_callback(self, event, x, y, flags, param):
         """Handle mouse events for polygon selection."""
+
         if event == cv2.EVENT_LBUTTONDOWN and not self.done:
             self.points.append((x, y))
             temp_image = self.clone.copy()
@@ -29,11 +30,8 @@ class ManualCropper:
             cv2.imshow("Crop Selection", temp_image)
     
     def get_crop_polygon(self, image_path):
-        """
-        Open image and allow user to select polygon area.
-        Returns:
-            list: List of (x, y) points or None if cancelled
-        """
+        """Open image and allow user to select polygon area"""
+
         self.points = []
         self.done = False
         self.image = cv2.imread(image_path)
@@ -55,7 +53,7 @@ class ManualCropper:
         cv2.namedWindow("Crop Selection", cv2.WINDOW_AUTOSIZE)
         cv2.setMouseCallback("Crop Selection", self.mouse_callback)
         print("Instructions:")
-        print(" - Left click to add points (at least 3)")
+        print(" - Left click to add points")
         print(" - Right click to finish polygon")
         print(" - Press 'r' to reset selection")
         print(" - Press 'q' to quit")

@@ -14,7 +14,7 @@ MIN_SOLIDITY = 0.3
 
 
 class BeeDetector:
-    """Detects bees using background subtraction and calculates occupied area."""
+    """Detects bees using background subtraction and calculates occupied area"""
     
     def __init__(self, background_image, valid_area_pixels=None):
         """
@@ -110,37 +110,19 @@ class BeeDetector:
         return bee_mask, bee_contours
     
     def update_background(self, new_background_image):
-        """
-        Update the background image for changing lighting conditions.
-        
-        Args:
-            new_background_image: New background image as numpy array
-        """
+        """Update the background image for changing lighting conditions"""
+
         self.background = new_background_image
         self.background_gray = cv2.cvtColor(new_background_image, cv2.COLOR_BGR2GRAY)
     
     def calculate_bee_area(self, bee_mask):
-        """
-        Calculate the total area occupied by bees.
-        
-        Args:
-            bee_mask: Binary mask of bee locations
-            
-        Returns:
-            int: Total bee area in pixels
-        """
+        """Calculate the total area occupied by bees"""
+
         return np.sum(bee_mask > 0)
     
     def calculate_total_area(self, image):
-        """
-        Calculate total valid image area (excluding black background from polygon cropping).
-        
-        Args:
-            image: Input image
-            
-        Returns:
-            int: Total valid area in pixels
-        """
+        """Calculate total valid image area excluding black background"""
+
         if self.valid_area_pixels:
             return self.valid_area_pixels
         else:
@@ -225,26 +207,12 @@ class BeeDetector:
         return best_result
     
     def create_visualization(self, image, bee_mask, contours):
-        """
-        Create visualization of bee detection results.
-        
-        Args:
-            image: Original image
-            bee_mask: Binary mask of detected bees
-            contours: List of bee contours
-            
-        Returns:
-            numpy.ndarray: Visualization image
-        """
-        # Create visualization
+        """Create visualization of bee detection results"""
+
         vis = image.copy()
-        
-        # Overlay bee mask in red
         red_overlay = np.zeros_like(image)
-        red_overlay[:, :, 2] = bee_mask  # Red channel
+        red_overlay[:, :, 2] = bee_mask
         vis = cv2.addWeighted(vis, 0.7, red_overlay, 0.3, 0)
-        
-        # Draw contour boundaries
         cv2.drawContours(vis, contours, -1, (0, 255, 0), 2)
         
         return vis

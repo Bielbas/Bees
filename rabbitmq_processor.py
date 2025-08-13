@@ -21,12 +21,8 @@ class RabbitMQBeeProcessor:
     """Processes bee images from RabbitMQ queue in real time."""
     
     def __init__(self, rabbit_config=None):
-        """
-        Initialize processor.
-        
-        Args:
-            rabbit_config: Dict with RabbitMQ configuration (host, port, username, password, queue_name)
-        """
+        """Initialize processor"""
+
         self.config = rabbit_config or RABBITMQ_CONFIG
         self.processing_config = PROCESSING_CONFIG
         
@@ -48,12 +44,8 @@ class RabbitMQBeeProcessor:
         self.output_dir.mkdir(exist_ok=True)
                 
     def load_crop_polygon(self, first_image=None):
-        """
-        Load or create crop polygon.
-        
-        Args:
-            first_image: First image for manual cropping (as array)
-        """
+        """Load or create crop polygon"""
+
         polygon_file = self.processing_config['crop_polygon_file']
         
         try:
@@ -85,6 +77,7 @@ class RabbitMQBeeProcessor:
     
     def connect_to_rabbitmq(self):
         """Connect with RabbitMQ."""
+
         try:
             credentials = pika.PlainCredentials(
                 self.config['username'], 
@@ -145,7 +138,8 @@ class RabbitMQBeeProcessor:
             return None, None
     
     def create_background_from_buffer(self):
-        """Create background image from current image buffer."""
+        """Create background image from current image buffer"""
+        
         if len(self.image_buffer) < 5: 
             print("Not enough images in buffer to create background")
             return None
@@ -235,7 +229,7 @@ class RabbitMQBeeProcessor:
                     vis_path = self.output_dir / f"visualization_{filename}"
                     cv2.imwrite(str(vis_path), vis)
                 
-                print(f"  ✅ {filename}: {result['bee_percentage']:.2f}% bee coverage, {result['detection_method']})")
+                print(f"{filename}: {result['bee_percentage']:.2f}% bee coverage, {result['detection_method']})")
                 
                 return result
         
@@ -252,9 +246,7 @@ class RabbitMQBeeProcessor:
             properties: Properties (contain filename in headers)
             body: Message body (raw image bytes)
         """
-        try:
-            print(f"\n📨 Received message from RabbitMQ (size: {len(body)} bytes)")
-            
+        try:            
             image, filename = self.decode_image_from_message(body, properties)
             if image is None:
                 print("Failed to decode image - skipping")
@@ -284,7 +276,8 @@ class RabbitMQBeeProcessor:
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
     
     def start_consuming(self):
-        """Start listening for messages from RabbitMQ."""
+        """Start listening for messages from RabbitMQ"""
+
         if not self.connect_to_rabbitmq():
             return False
         
@@ -294,8 +287,6 @@ class RabbitMQBeeProcessor:
         
         if not self.crop_polygon:
             self.load_crop_polygon()
-        
-        print("🚀 Starting RabbitMQ listening...")
         
         try:
             self.channel.basic_qos(prefetch_count=1)
@@ -317,7 +308,7 @@ class RabbitMQBeeProcessor:
         return True
     
     def stop_consuming(self):
-        """Stop listening and save results."""
+        """Stop listening and save results"""
         
         if self.channel and self.is_running:
             self.channel.stop_consuming()

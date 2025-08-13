@@ -10,12 +10,8 @@ class BeeDatabase:
     """Manages SQLite database for bee detection results."""
     
     def __init__(self, db_path="bee_detection.db"):
-        """
-        Initialize database connection.
-        
-        Args:
-            db_path: Path to SQLite database file
-        """
+        """Initialize database connection"""
+
         self.db_path = Path(db_path)
         self.connection = None
         self.hive_id = None
@@ -23,15 +19,16 @@ class BeeDatabase:
         print(f"🗃️ Database: {self.db_path}")
     
     def _set_hive_id(self, filename):
-        """Set hive_id from the last character of the first photo filename."""
+        """Set hive_id from the last character of the first photo"""
+
         if self.hive_id is None: 
             name_without_ext = Path(filename).stem
             last_char = name_without_ext[-1] if name_without_ext else "X"
             self.hive_id = f"HIVE_{last_char}"
-            print(f"🏠 Hive ID set from first photo: {self.hive_id} (from '{filename}')")
     
     def _initialize_database(self):
-        """Create database and tables if they don't exist."""
+        """Create database and tables if they don't exist"""
+
         try:
             self.connection = sqlite3.connect(self.db_path)
             self.connection.execute("PRAGMA foreign_keys = ON")  # Enable foreign keys
@@ -43,7 +40,8 @@ class BeeDatabase:
     
     
     def _create_tables(self):
-        """Create necessary tables."""
+        """Create necessary tables"""
+
         cursor = self.connection.cursor()
         cursor.execute("""
                         CREATE TABLE IF NOT EXISTS bee_detections (
@@ -63,12 +61,8 @@ class BeeDatabase:
         
     
     def insert_detection_result(self, result_data):
-        """
-        Insert bee detection result into database.
+        """Insert bee detection result into database"""
         
-        Args:
-            result_data: Dict with detection results from bee_detector
-        """
         try:
             filename = result_data.get('filename', 'unknown.jpg')
             self._set_hive_id(filename)
