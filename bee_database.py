@@ -2,69 +2,62 @@ import sqlite3
 import os
 from datetime import datetime
 from pathlib import Path
+import sqlite3
 import uuid
 
 
 class BeeDatabase:
     """Manages SQLite database for bee detection results."""
     
-    def __init__(self, db_path="bee_detection.db", hive_id=None):
+    def __init__(self, db_path="bee_detection.db"):
         """
         Initialize database connection.
         
         Args:
             db_path: Path to SQLite database file
-            hive_id: Unique identifier for this hive (auto-generated if None)
         """
         self.db_path = Path(db_path)
         self.connection = None
-        # Initialize database first
+        self.hive_id = None
         self._initialize_database()
-        self.hive_id = hive_id or self._generate_hive_id()
         print(f"🗃️ Database: {self.db_path}")
-        print(f"🏠 Hive ID: {self.hive_id}")
     
-    def _generate_hive_id(self):
-        """Generate unique hive ID."""
-        import socket
-        hostname = socket.gethostname()
-        timestamp = datetime.now().strftime("%Y%m%d")
-        return f"HIVE_{hostname}_{timestamp}"[:32]
+    def _set_hive_id(self, filename):
+        """Set hive_id from the last character of the first photo filename."""
+        if self.hive_id is None: 
+            name_without_ext = Path(filename).stem
+            last_char = name_without_ext[-1] if name_without_ext else "X"
+            self.hive_id = f"HIVE_{last_char}"
+            print(f"🏠 Hive ID set from first photo: {self.hive_id} (from '{filename}')")
     
     def _initialize_database(self):
         """Create database and tables if they don't exist."""
         try:
             self.connection = sqlite3.connect(self.db_path)
             self.connection.execute("PRAGMA foreign_keys = ON")  # Enable foreign keys
-
-            # Create tables
             self._create_tables()
                         
         except Exception as e:
-            print(f"❌ Database initialization error: {e}")
+            print(f"Database initialization error: {e}")
             raise
     
     
     def _create_tables(self):
         """Create necessary tables."""
         cursor = self.connection.cursor()
-        
-        # Bee detection results table - ULTRA PROSTA
         cursor.execute("""
-            CREATE TABLE IF NOT EXISTS bee_detections (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                hive_id TEXT NOT NULL,
-                filename TEXT,
-                timestamp TIMESTAMP,
-                bee_coverage REAL
-            )
-        """)
-        
-        # Create indexes for better performance
+                        CREATE TABLE IF NOT EXISTS bee_detections (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            hive_id TEXT NOT NULL,
+                            filename TEXT,
+                            timestamp TIMESTAMP,
+                            bee_coverage REAL)
+                       """
+                       )
         cursor.execute("""
-            CREATE INDEX IF NOT EXISTS idx_bee_detections_hive_timestamp 
-            ON bee_detections (hive_id, timestamp)
-        """)
+                        CREATE INDEX IF NOT EXISTS idx_bee_detections_hive_timestamp 
+                        ON bee_detections (hive_id, timestamp)
+                        """)
         
         self.connection.commit()
         
@@ -77,9 +70,10 @@ class BeeDatabase:
             result_data: Dict with detection results from bee_detector
         """
         try:
+            filename = result_data.get('filename', 'unknown.jpg')
+            self._set_hive_id(filename)
             cursor = self.connection.cursor()
             
-            # Parse timestamp bez mikrosekund
             timestamp_str = result_data.get('timestamp', datetime.now().isoformat())
             if isinstance(timestamp_str, str):
                 if 'T' in timestamp_str:
@@ -89,35 +83,27 @@ class BeeDatabase:
             else:
                 timestamp = datetime.now()
             
-            # Usuń mikrosekundy - tylko sekundy!
             timestamp = timestamp.replace(microsecond=0)
             
-            # Insert detection result - TYLKO 5 kolumn!
             cursor.execute("""
-                INSERT INTO bee_detections (
-                    hive_id, filename, timestamp, bee_coverage
-                ) VALUES (?, ?, ?, ?)
-            """, (
+                            INSERT INTO bee_detections 
+                                (hive_id, filename, timestamp, bee_coverage) 
+                            VALUES 
+                                (?, ?, ?, ?)
+                           """, 
+                           (
                 self.hive_id,
-                result_data.get('filename', 'unknown.jpg'),
+                filename,
                 timestamp,
                 result_data.get('bee_percentage', 0.0)
-            ))
+                )
+            )
             
-            self.connection.commit()
-            
-            cursor.execute("SELECT last_insert_rowid()")
-            record_id = cursor.fetchone()[0]
-            
-            print(f"💾 Saved to DB: ID {record_id} - {result_data.get('bee_percentage', 0):.2f}% coverage")
-            return record_id
-            
+            self.connection.commit()            
         except Exception as e:
-            print(f"❌ Database insert error: {e}")
-            return None
+            print(f"Database insert error: {e}")
     
     def close(self):
-        """Close database connection."""
         if self.connection:
             self.connection.close()
-            print("🗃️ Database connection closed")
+            print("Database connection closed")
