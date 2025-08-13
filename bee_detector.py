@@ -28,7 +28,6 @@ class BeeDetector:
         self.background_gray = cv2.cvtColor(background_image, cv2.COLOR_BGR2GRAY)
         self.valid_area_pixels = valid_area_pixels
         
-        # Load adjustable thresholds from config
         self.thresholds = DETECTION_THRESHOLDS
         self.min_area = MIN_BEE_AREA
         self.max_area = MAX_BEE_AREA
@@ -37,11 +36,6 @@ class BeeDetector:
         self.min_aspect_ratio = MIN_ASPECT_RATIO
         self.max_aspect_ratio = MAX_ASPECT_RATIO
         self.min_solidity = MIN_SOLIDITY
-        
-        print(f"🔧 Detector initialized with thresholds: {self.thresholds}")
-        print(f"🔧 Area range: {self.min_area}-{self.max_area} pixels")
-        if valid_area_pixels:
-            print(f"🔧 Valid polygon area: {valid_area_pixels} pixels")
     
     def detect_bees(self, image, threshold=None, min_area=None, max_area=None):
         """
@@ -56,14 +50,12 @@ class BeeDetector:
         Returns:
             tuple: (bee_mask, bee_contours)
         """
-        # Use class defaults if not specified
         if threshold is None:
             threshold = 25
         if min_area is None:
             min_area = self.min_area
         if max_area is None:
             max_area = self.max_area
-        # Convert to grayscale
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
         # Apply Gaussian blur to reduce noise
@@ -126,7 +118,6 @@ class BeeDetector:
         """
         self.background = new_background_image
         self.background_gray = cv2.cvtColor(new_background_image, cv2.COLOR_BGR2GRAY)
-        print("🌅 Background updated for changing lighting conditions")
     
     def calculate_bee_area(self, bee_mask):
         """
@@ -153,7 +144,6 @@ class BeeDetector:
         if self.valid_area_pixels:
             return self.valid_area_pixels
         else:
-            # Fallback to full image area
             return image.shape[0] * image.shape[1]
     
     def analyze_image(self, image, filename, adaptive_threshold=True):
@@ -168,8 +158,6 @@ class BeeDetector:
         Returns:
             dict: Analysis results
         """
-        # Try multiple threshold values and methods for better accuracy
-        thresholds = [15, 25, 35, 45] if adaptive_threshold else [25]
         best_result = None
         best_score = -1
         
@@ -219,10 +207,10 @@ class BeeDetector:
         color_bee_percentage = (color_bee_area / self.calculate_total_area(image)) * 100
         
         # If color detection shows significantly higher bee coverage, use it
-        # Bardziej liberalne warunki dla color segmentation
+        # More liberal conditions for color segmentation
         if color_bee_percentage > best_result['bee_percentage'] * 1.2 and color_bee_percentage > 3:
             contours_color, _ = cv2.findContours(color_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            # Użyj tych samych filtrów co w config.py
+            # Use the same filters as in config.py
             filtered_contours = [c for c in contours_color if self.min_area <= cv2.contourArea(c) <= self.max_area]
             
             best_result.update({
@@ -260,27 +248,3 @@ class BeeDetector:
         cv2.drawContours(vis, contours, -1, (0, 255, 0), 2)
         
         return vis
-    
-    def get_detection_statistics(self, results_list):
-        """
-        Calculate statistics from multiple detection results.
-        
-        Args:
-            results_list: List of detection result dictionaries
-            
-        Returns:
-            dict: Statistics summary
-        """
-        if not results_list:
-            return {}
-        
-        percentages = [r['bee_percentage'] for r in results_list]
-        
-        return {
-            'total_images': len(results_list),
-            'mean_bee_percentage': np.mean(percentages),
-            'std_bee_percentage': np.std(percentages),
-            'min_bee_percentage': np.min(percentages),
-            'max_bee_percentage': np.max(percentages),
-            'median_bee_percentage': np.median(percentages)
-        }

@@ -13,10 +13,8 @@ class ImageProcessor:
             crop_polygon: List of (x, y) points
         """
         self.crop_polygon = crop_polygon
-        # Calculate the actual polygon area for accurate percentage calculations
         pts = np.array(crop_polygon, np.int32)
         self.polygon_area = cv2.contourArea(pts)
-        print(f"✅ Polygon area calculated: {self.polygon_area} pixels")
     
     def crop_image(self, image_path):
         """
@@ -100,46 +98,7 @@ class ImageProcessor:
             print(f"❌ Unknown background method: {method}")
             return None
         
-        # Apply slight blur to smooth the background
         background = cv2.GaussianBlur(background, (3, 3), 0)
         
-        print(f"✅ Background created with dimensions: {background.shape}")
         return background
-    
-    def preprocess_image(self, image):
-        """
-        Preprocess image for better bee detection.
-        
-        Args:
-            image: Input image as numpy array
-            
-        Returns:
-            numpy.ndarray: Preprocessed image
-        """
-        # Apply Gaussian blur to reduce noise
-        blurred = cv2.GaussianBlur(image, (5, 5), 0)
-        
-        # Optional: enhance contrast
-        lab = cv2.cvtColor(blurred, cv2.COLOR_BGR2LAB)
-        l, a, b = cv2.split(lab)
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        l = clahe.apply(l)
-        enhanced = cv2.merge([l, a, b])
-        enhanced = cv2.cvtColor(enhanced, cv2.COLOR_LAB2BGR)
-        
-        return enhanced
-    
-    # ...existing code...
-    
-    @staticmethod
-    def calculate_image_area(image):
-        """
-        Calculate total image area in pixels.
-        
-        Args:
-            image: Input image as numpy array
-            
-        Returns:
-            int: Total area in pixels
-        """
-        return image.shape[0] * image.shape[1]
+

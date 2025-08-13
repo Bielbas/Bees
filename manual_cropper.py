@@ -38,7 +38,7 @@ class ManualCropper:
         self.done = False
         self.image = cv2.imread(image_path)
         if self.image is None:
-            print(f"❌ Could not load image: {image_path}")
+            print(f"Could not load image: {image_path}")
             return None
         height, width = self.image.shape[:2]
         max_display_size = 800
@@ -54,11 +54,11 @@ class ManualCropper:
         self.clone = display_image.copy()
         cv2.namedWindow("Crop Selection", cv2.WINDOW_AUTOSIZE)
         cv2.setMouseCallback("Crop Selection", self.mouse_callback)
-        print("🖱️  Instructions:")
-        print("   - Left click to add points (at least 3)")
-        print("   - Right click to finish polygon")
-        print("   - Press 'r' to reset selection")
-        print("   - Press 'q' to quit")
+        print("Instructions:")
+        print(" - Left click to add points (at least 3)")
+        print(" - Right click to finish polygon")
+        print(" - Press 'r' to reset selection")
+        print(" - Press 'q' to quit")
         cv2.imshow("Crop Selection", self.image)
         while True:
             key = cv2.waitKey(1) & 0xFF
@@ -67,14 +67,10 @@ class ManualCropper:
                 self.done = False
                 self.image = self.clone.copy()
                 cv2.imshow("Crop Selection", self.image)
-                print("🔄 Selection reset")
             elif key == ord('q'):
                 cv2.destroyAllWindows()
                 return None
             if self.done:
                 cv2.destroyAllWindows()
-                # Scale points back to original image size
                 scaled_points = [(int(pt[0] / scale), int(pt[1] / scale)) for pt in self.points]
                 return scaled_points
-        cv2.destroyAllWindows()
-        return None
