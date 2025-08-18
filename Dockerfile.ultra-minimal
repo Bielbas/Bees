@@ -21,10 +21,9 @@ RUN pip install --no-cache-dir --upgrade pip
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 
-# Install requirements with fallback options
-RUN pip install --no-cache-dir opencv-python-headless==4.8.* || \
-    pip install --no-cache-dir opencv-python-headless && \
-    pip install --no-cache-dir numpy==1.24.* && \
+# Install requirements with fallback options and NumPy compatibility
+RUN pip install --no-cache-dir "numpy>=1.21.0,<2.0.0" && \
+    pip install --no-cache-dir opencv-python-headless==4.10.0.84 && \
     pip install --no-cache-dir Pillow && \
     pip install --no-cache-dir pika && \
     pip install --no-cache-dir mysql-connector-python

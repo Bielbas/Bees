@@ -26,8 +26,16 @@ build_with_dockerfile() {
     fi
 }
 
-# Try building with minimal dockerfile first (most likely to succeed)
-if build_with_dockerfile "Dockerfile.minimal" "bee-processor:minimal"; then
+# Try building with fixed dockerfile first (addresses NumPy/OpenCV compatibility)
+if build_with_dockerfile "Dockerfile.fixed" "bee-processor:fixed"; then
+    echo "🎉 Build successful with fixed Dockerfile!"
+    
+    # Update docker-compose to use the built image
+    echo "📝 Updating docker-compose to use built image..."
+    sed -i 's/dockerfile: Dockerfile.minimal/# dockerfile: Dockerfile.minimal/' docker-compose.vps.yml
+    sed -i '/container_name: bee-processor/a\    image: bee-processor:fixed' docker-compose.vps.yml
+    
+elif build_with_dockerfile "Dockerfile.minimal" "bee-processor:minimal"; then
     echo "🎉 Build successful with minimal Dockerfile!"
     
     # Update docker-compose to use the built image

@@ -44,8 +44,10 @@ WORKDIR /app
 # Copy requirements first for better Docker layer caching
 COPY requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with NumPy compatibility
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir "numpy>=1.21.0,<2.0.0" && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy project files
 COPY bee_database.py .

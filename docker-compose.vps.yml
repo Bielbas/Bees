@@ -4,7 +4,7 @@ services:
   bee-processor:
     build:
       context: .
-      dockerfile: Dockerfile.minimal  # Use minimal dockerfile for better reliability
+      dockerfile: Dockerfile.fixed  # Use fixed dockerfile for NumPy/OpenCV compatibility
       args:
         - BUILDKIT_INLINE_CACHE=1
     container_name: bee-processor
