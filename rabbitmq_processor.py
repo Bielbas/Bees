@@ -39,10 +39,24 @@ class RabbitMQBeeProcessor:
         self.channel = None
         
         self.output_dir = Path(self.processing_config['output_dir'])
-        if self.output_dir.exists():
-            import shutil
-            shutil.rmtree(self.output_dir)
+        
+        # Create output directory if it doesn't exist
         self.output_dir.mkdir(exist_ok=True)
+        
+        # Clean existing files in output directory (Docker volume safe)
+        if self.output_dir.exists() and self.output_dir.is_dir():
+            try:
+                import shutil
+                # Remove only the contents, not the directory itself (Docker volume compatibility)
+                for item in self.output_dir.iterdir():
+                    if item.is_file():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                print(f"🧹 Cleaned output directory: {self.output_dir}")
+            except Exception as e:
+                print(f"⚠️  Could not clean output directory: {e}")
+                print("   This is normal if using Docker volumes")
                 
     def load_crop_polygon(self, first_image=None):
         """Load or create crop polygon"""
