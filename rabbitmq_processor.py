@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import base64
 import pickle
+import os
 from datetime import datetime
 from pathlib import Path
 from collections import deque
@@ -281,9 +282,18 @@ class RabbitMQBeeProcessor:
         if not self.connect_to_rabbitmq():
             return False
         
-        db_path = self.processing_config.get('database_path', 'bee_detection.db')
+        # MySQL database configuration
+        db_config = {
+            'host': os.getenv('MYSQL_HOST', 'localhost'),
+            'port': int(os.getenv('MYSQL_PORT', '3306')),
+            'user': os.getenv('MYSQL_USER', 'root'),
+            'password': os.getenv('MYSQL_PASSWORD', ''),
+            'database': os.getenv('MYSQL_DATABASE', 'bee_detection'),
+            'charset': 'utf8mb4',
+            'collation': 'utf8mb4_unicode_ci'
+        }
         hive_id = self.processing_config.get('hive_id', None)
-        self.bee_database = BeeDatabase(db_path, hive_id)
+        self.bee_database = BeeDatabase(db_config, hive_id)
         
         if not self.crop_polygon:
             self.load_crop_polygon()

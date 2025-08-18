@@ -27,6 +27,8 @@ RUN apt-get update && apt-get install -y \
     libatlas-base-dev \
     gfortran \
     wget \
+    default-libmysqlclient-dev \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
@@ -58,14 +60,30 @@ RUN groupadd -r beeuser && useradd -r -g beeuser beeuser
 RUN chown -R beeuser:beeuser /app
 USER beeuser
 
-# Expose any ports if needed (none required for this RabbitMQ consumer)
-# EXPOSE 8080
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD python -c "import pika; from rabbitmq_config import RABBITMQ_CONFIG; \
-  conn = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_CONFIG['host'])); \
-  conn.close()" || exit 1
+# Health check for external services connection
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD python -c "import pika, mysql.connector, os; \
+  from rabbitmq_config import RABBITMQ_CONFIG; \
+  # Check RabbitMQ \
+  conn = pika.BlockingConnection(pika.ConnectionParameters( \
+    host=os.getenv('RABBITMQ_HOST', 'localhost'), \
+    port=int(os.getenv('RABBITMQ_PORT', '5672')), \
+    credentials=pika.PlainCredentials( \
+      os.getenv('RABBITMQ_USER', 'guest'), \
+      os.getenv('RABBITMQ_PASS', 'guest') \
+    ) \
+  )); \
+  conn.close(); \
+  # Check MySQL \
+  mysql_conn = mysql.connector.connect( \
+    host=os.getenv('MYSQL_HOST', 'localhost'), \
+    port=int(os.getenv('MYSQL_PORT', '3306')), \
+    user=os.getenv('MYSQL_USER', 'root'), \
+    password=os.getenv('MYSQL_PASSWORD', ''), \
+    database=os.getenv('MYSQL_DATABASE', 'bee_detection') \
+  ); \
+  mysql_conn.close(); \
+  print('✅ All services connected')" || exit 1
 
 # Default command
 CMD ["python", "run_rabbitmq_processor.py"]

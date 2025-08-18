@@ -17,8 +17,18 @@ PROCESSING_CONFIG = {
     'output_dir': os.getenv('OUTPUT_DIR', 'output'),       
     'save_intermediate': os.getenv('SAVE_INTERMEDIATE', 'True').lower() == 'true',   
     'background_update_frequency': int(os.getenv('BACKGROUND_UPDATE_FREQ', '1')),
-    'database_path': os.getenv('DATABASE_PATH', 'bee_detection.db'),  
     'hive_id': os.getenv('HIVE_ID', None)  
+}
+
+# MySQL configuration for VPS deployment
+MYSQL_CONFIG = {
+    'host': os.getenv('MYSQL_HOST', 'localhost'),
+    'port': int(os.getenv('MYSQL_PORT', '3306')),
+    'user': os.getenv('MYSQL_USER', 'root'),
+    'password': os.getenv('MYSQL_PASSWORD', ''),
+    'database': os.getenv('MYSQL_DATABASE', 'bee_detection'),
+    'charset': 'utf8mb4',
+    'collation': 'utf8mb4_unicode_ci'
 }
 
 DETECTION_CONFIG = {
