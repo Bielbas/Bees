@@ -9,12 +9,12 @@ import uuid
 class BeeDatabase:
     """Manages SQLite database for bee detection results."""
     
-    def __init__(self, db_path="bee_detection.db"):
+    def __init__(self, db_path="bee_detection.db", hive_id=None):
         """Initialize database connection"""
 
         self.db_path = Path(db_path)
         self.connection = None
-        self.hive_id = None
+        self.hive_id = hive_id
         self._initialize_database()
         print(f"🗃️ Database: {self.db_path}")
     
