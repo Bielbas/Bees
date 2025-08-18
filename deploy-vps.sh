@@ -54,7 +54,36 @@ mkdir -p input_photos output
 
 # Build and start the service
 echo "🔨 Building Docker image..."
-docker-compose -f docker-compose.vps.yml build
+
+# Make build script executable
+chmod +x build-docker.sh
+
+# Try building with fallback options
+if ./build-docker.sh; then
+    echo "✅ Docker image built successfully"
+else
+    echo "❌ Docker build failed. Trying alternative approach..."
+    
+    # Fallback: try to pull a pre-built image or build with different options
+    echo "🔄 Attempting minimal build with specific options..."
+    
+    # Clear Docker cache and try again
+    docker system prune -f
+    
+    # Try building minimal version with more specific options
+    if docker build -f Dockerfile.minimal --no-cache --progress=plain -t bee-processor:minimal .; then
+        echo "✅ Minimal build successful"
+        # Update docker-compose
+        sed -i 's/build:/# build:/' docker-compose.vps.yml
+        sed -i 's/context: ./# context: ./' docker-compose.vps.yml
+        sed -i 's/dockerfile: Dockerfile.minimal/# dockerfile: Dockerfile.minimal/' docker-compose.vps.yml
+        sed -i '/container_name: bee-processor/a\    image: bee-processor:minimal' docker-compose.vps.yml
+    else
+        echo "❌ All build attempts failed. Please check the error messages above."
+        echo "💡 Try running: docker build -f Dockerfile.minimal --no-cache --progress=plain -t bee-processor:minimal ."
+        exit 1
+    fi
+fi
 
 echo "🚀 Starting bee processor..."
 docker-compose -f docker-compose.vps.yml up -d

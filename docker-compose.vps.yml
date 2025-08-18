@@ -4,7 +4,9 @@ services:
   bee-processor:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.minimal  # Use minimal dockerfile for better reliability
+      args:
+        - BUILDKIT_INLINE_CACHE=1
     container_name: bee-processor
     environment:
       # RabbitMQ Configuration (external service)

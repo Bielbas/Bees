@@ -1,0 +1,70 @@
+# Lightweight Dockerfile for VPS deployment
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Update package list and install essential dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Essential build tools
+    build-essential \
+    pkg-config \
+    wget \
+    curl \
+    # OpenCV dependencies (minimal set)
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    # Image processing libraries
+    libjpeg62-turbo \
+    libpng16-16 \
+    libtiff5 \
+    # Math libraries
+    libatlas3-base \
+    liblapack3 \
+    # Python MySQL dependencies
+    default-libmysqlclient-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/*
+
+# Set work directory
+WORKDIR /app
+
+# Copy requirements first for better Docker layer caching
+COPY requirements.txt .
+
+# Upgrade pip and install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY bee_database.py .
+COPY bee_detector.py .
+COPY image_processor.py .
+COPY manual_cropper.py .
+COPY rabbitmq_config.py .
+COPY rabbitmq_processor.py .
+COPY run_rabbitmq_processor.py .
+
+# Copy the crop polygon file if it exists
+COPY crop_polygon.pkl* ./
+
+# Create necessary directories
+RUN mkdir -p output input_photos
+
+# Create a non-root user for security
+RUN groupadd -r beeuser && useradd -r -g beeuser beeuser
+RUN chown -R beeuser:beeuser /app
+USER beeuser
+
+# Simple health check
+HEALTHCHECK --interval=60s --timeout=30s --start-period=120s --retries=3 \
+  CMD python -c "import sys; print('Health check OK'); sys.exit(0)" || exit 1
+
+# Default command
+CMD ["python", "run_rabbitmq_processor.py"]

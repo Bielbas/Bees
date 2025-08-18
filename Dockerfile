@@ -7,28 +7,35 @@ ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install system dependencies required for OpenCV and image processing
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
     libgomp1 \
-    libglib2.0-0 \
     libgtk-3-0 \
-    libavcodec-dev \
-    libavformat-dev \
-    libswscale-dev \
-    libv4l-dev \
-    libxvidcore-dev \
-    libx264-dev \
-    libjpeg-dev \
-    libpng-dev \
-    libtiff-dev \
-    libatlas-base-dev \
+    libavcodec58 \
+    libavformat58 \
+    libswscale5 \
+    libv4l-0 \
+    libjpeg62-turbo \
+    libpng16-16 \
+    libtiff5 \
+    libatlas3-base \
     gfortran \
     wget \
-    default-libmysqlclient-dev \
+    curl \
     pkg-config \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install MySQL client libraries separately
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    default-libmysqlclient-dev \
+    || apt-get install -y --no-install-recommends \
+    libmariadb-dev \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Set work directory
