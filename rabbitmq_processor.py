@@ -179,12 +179,13 @@ class RabbitMQBeeProcessor:
         
         Args:
             image: Image as numpy array
-            timestamp: Timestamp (optional)
+            timestamp: Timestamp from RabbitMQ properties (optional)
             filename: Filename from API (optional)
             
         Returns:
             dict: Detection results or None
         """
+        # Use provided timestamp or fall back to current time only if none provided
         if timestamp is None:
             timestamp = datetime.now().isoformat()
         
@@ -268,6 +269,14 @@ class RabbitMQBeeProcessor:
                 ch.basic_ack(delivery_tag=method.delivery_tag)
                 return
             
+            # Extract timestamp from RabbitMQ properties
+            timestamp = None
+            if properties and hasattr(properties, 'headers') and properties.headers:
+                if 'timestamp' in properties.headers:
+                    timestamp = properties.headers['timestamp']
+                    if isinstance(timestamp, bytes):
+                        timestamp = timestamp.decode('utf-8')
+            
             if self.crop_polygon is None:
                 if not self.load_crop_polygon(image):
                     print("Failed to set crop polygon - stopping processing")
@@ -275,7 +284,7 @@ class RabbitMQBeeProcessor:
                     return
             
             self.image_count += 1
-            result = self.process_single_image(image, filename=filename)
+            result = self.process_single_image(image, timestamp=timestamp, filename=filename)
             
             if result:
                 self.results.append(result)

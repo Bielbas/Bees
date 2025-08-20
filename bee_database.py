@@ -115,13 +115,13 @@ class BeeDatabase:
             ))
             
             self.connection.commit()
-            print(f"📊 Saved detection result: {filename} - {result_data.get('bee_percentage', 0.0):.2f}%")
+            print(f"Saved detection result: {filename} - {result_data.get('bee_percentage', 0.0):.2f}%")
             
         except Error as e:
-            print(f"❌ Database insert error: {e}")
+            print(f"Database insert error: {e}")
             self.connection.rollback()
         except Exception as e:
-            print(f"❌ Unexpected database error: {e}")
+            print(f"Unexpected database error: {e}")
             self.connection.rollback()
     
     def close(self):
