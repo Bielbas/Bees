@@ -259,7 +259,7 @@ function formatDate(date) {
 
 // Utility function to format time for chart labels
 function formatTime(date) {
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 }
 
 // Utility function to format date for chart title
