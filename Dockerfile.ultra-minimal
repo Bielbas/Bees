@@ -33,6 +33,7 @@ RUN pip install --no-cache-dir scikit-image || echo "scikit-image installation f
 
 # Copy application files
 COPY *.py ./
+COPY crop_polygon.pkl* ./
 
 # Create directories
 RUN mkdir -p output input_photos
