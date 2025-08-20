@@ -1,6 +1,6 @@
 // Configuration
-// Use local proxy server to avoid CORS issues with the external API
-const API_BASE_URL = '/api/v1';
+// Direct API endpoint for deployment
+const API_BASE_URL = 'https://bee-monitoring.duckdns.org/api/v1';
 const DETECTIONS_ENDPOINT = `${API_BASE_URL}/detections`;
 
 // Global variables
@@ -10,6 +10,7 @@ let allDetections = [];
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
     initializeChart();
+    setupDatePicker();
     loadDetections();
 });
 
@@ -24,11 +25,15 @@ function initializeChart() {
             datasets: [{
                 label: 'Bee Coverage (%)',
                 data: [],
-                borderColor: '#ffc107',
-                backgroundColor: 'rgba(255, 193, 7, 0.1)',
-                borderWidth: 2,
+                borderColor: '#F4E09C',
+                backgroundColor: 'rgba(244, 224, 156, 0.2)',
+                borderWidth: 3,
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                pointBackgroundColor: '#F4E09C',
+                pointBorderColor: '#E8DCC6',
+                pointHoverBackgroundColor: '#E8DCC6',
+                pointHoverBorderColor: '#F4E09C'
             }]
         },
         options: {
@@ -67,6 +72,19 @@ function initializeChart() {
     });
 }
 
+// Setup date picker
+function setupDatePicker() {
+    const dateSelect = document.getElementById('dateSelect');
+    
+    // Don't set a default date - let user choose
+    // dateSelect.value = '';
+    
+    // Add event listener for date changes
+    dateSelect.addEventListener('change', function() {
+        applyFilters();
+    });
+}
+
 // Load detections from API
 async function loadDetections() {
     try {
@@ -90,8 +108,7 @@ async function loadDetections() {
         
         allDetections = data;
         updateHiveSelector(allDetections);
-        updateStats(allDetections);
-        updateChart(allDetections);
+        setLatestDate(); // Automatically set to latest date when data loads
         
         showLoading(false);
         console.log(`Loaded ${allDetections.length} detections successfully`);
@@ -104,19 +121,18 @@ async function loadDetections() {
             {"timestamp": "2025-08-20 17:37:02", "coverage": 8.798, "hiveId": "1"},
             {"timestamp": "2025-08-20 17:37:08", "coverage": 7.732, "hiveId": "1"},
             {"timestamp": "2025-08-20 17:37:12", "coverage": 8.244, "hiveId": "1"},
-            {"timestamp": "2025-08-20 17:37:18", "coverage": 7.753, "hiveId": "1"},
-            {"timestamp": "2025-08-20 17:37:22", "coverage": 8.288, "hiveId": "1"},
-            {"timestamp": "2025-08-20 17:37:26", "coverage": 5.524, "hiveId": "1"},
-            {"timestamp": "2025-08-20 17:37:30", "coverage": 5.892, "hiveId": "1"},
-            {"timestamp": "2025-08-20 17:37:34", "coverage": 11.685, "hiveId": "1"},
-            {"timestamp": "2025-08-20 17:37:39", "coverage": 7.972, "hiveId": "1"},
-            {"timestamp": "2025-08-20 17:37:43", "coverage": 7.591, "hiveId": "1"}
+            {"timestamp": "2025-08-19 17:37:18", "coverage": 7.753, "hiveId": "1"},
+            {"timestamp": "2025-08-19 17:37:22", "coverage": 8.288, "hiveId": "1"},
+            {"timestamp": "2025-08-19 17:37:26", "coverage": 5.524, "hiveId": "2"},
+            {"timestamp": "2025-08-18 17:37:30", "coverage": 5.892, "hiveId": "2"},
+            {"timestamp": "2025-08-18 17:37:34", "coverage": 11.685, "hiveId": "2"},
+            {"timestamp": "2025-08-18 17:37:39", "coverage": 7.972, "hiveId": "1"},
+            {"timestamp": "2025-08-17 17:37:43", "coverage": 7.591, "hiveId": "1"}
         ];
         
         allDetections = mockData;
         updateHiveSelector(allDetections);
-        updateStats(allDetections);
-        updateChart(allDetections);
+        setLatestDate(); // Automatically set to latest date for mock data too
         
         showError(`Failed to load data: ${error.message}. Showing sample data.`);
         showLoading(false);
@@ -140,14 +156,35 @@ function updateHiveSelector(detections) {
     
     // Add event listener for hive selection
     hiveSelect.addEventListener('change', function() {
-        const selectedHive = this.value;
-        const filteredData = selectedHive ? 
-            allDetections.filter(d => d.hiveId === selectedHive) : 
-            allDetections;
-        
-        updateChart(filteredData);
-        updateStats(filteredData);
+        applyFilters();
     });
+}
+
+// Apply both hive and date filters
+function applyFilters() {
+    const hiveSelect = document.getElementById('hiveSelect');
+    const dateSelect = document.getElementById('dateSelect');
+    
+    const selectedHive = hiveSelect.value;
+    const selectedDate = dateSelect.value;
+    
+    let filteredData = allDetections;
+    
+    // Filter by hive
+    if (selectedHive) {
+        filteredData = filteredData.filter(d => d.hiveId === selectedHive);
+    }
+    
+    // Filter by date
+    if (selectedDate) {
+        filteredData = filteredData.filter(d => {
+            const detectionDate = new Date(d.timestamp).toISOString().split('T')[0];
+            return detectionDate === selectedDate;
+        });
+    }
+    
+    updateChart(filteredData);
+    updateStats(filteredData);
 }
 
 // Update statistics
@@ -193,12 +230,24 @@ function updateChart(detections) {
     chart.data.labels = labels;
     chart.data.datasets[0].data = coverageData;
     
-    // Update chart title based on selected hive
+    // Update chart title based on selected hive and date
     const hiveSelect = document.getElementById('hiveSelect');
+    const dateSelect = document.getElementById('dateSelect');
     const selectedHive = hiveSelect.value;
-    chart.options.plugins.title.text = selectedHive ? 
-        `Bee Detection Over Time - Hive ${selectedHive}` : 
-        'Bee Detection Over Time - All Hives';
+    const selectedDate = dateSelect.value;
+    
+    let title = 'Bee Detection Over Time';
+    if (selectedHive && selectedDate) {
+        title = `Bee Detection - Hive ${selectedHive} - ${formatDateForTitle(selectedDate)}`;
+    } else if (selectedHive) {
+        title = `Bee Detection - Hive ${selectedHive}`;
+    } else if (selectedDate) {
+        title = `Bee Detection - ${formatDateForTitle(selectedDate)}`;
+    } else {
+        title = 'Bee Detection Over Time - All Data';
+    }
+    
+    chart.options.plugins.title.text = title;
     
     chart.update();
 }
@@ -211,6 +260,38 @@ function formatDate(date) {
 // Utility function to format time for chart labels
 function formatTime(date) {
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+// Utility function to format date for chart title
+function formatDateForTitle(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+}
+
+// Set date to today
+function setToday() {
+    const dateSelect = document.getElementById('dateSelect');
+    const today = new Date();
+    dateSelect.value = today.toISOString().split('T')[0];
+    applyFilters();
+}
+
+// Set date to the latest date available in the database
+function setLatestDate() {
+    if (allDetections.length === 0) {
+        console.warn('No data available to find latest date');
+        return;
+    }
+    
+    // Find the most recent timestamp in the data
+    const latestTimestamp = allDetections.reduce((latest, detection) => {
+        const detectionDate = new Date(detection.timestamp);
+        return detectionDate > latest ? detectionDate : latest;
+    }, new Date(allDetections[0].timestamp));
+    
+    const dateSelect = document.getElementById('dateSelect');
+    dateSelect.value = latestTimestamp.toISOString().split('T')[0];
+    applyFilters();
 }
 
 // Show/hide loading indicator
