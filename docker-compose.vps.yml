@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  bee-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile.fixed  # Use fixed dockerfile for NumPy/OpenCV compatibility
+      args:
+        - BUILDKIT_INLINE_CACHE=1
+    container_name: bee-processor
+    environment:
+      # RabbitMQ Configuration (external service)
+      - RABBITMQ_HOST=${RABBITMQ_HOST:-localhost}
+      - RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
+      - RABBITMQ_USER=${RABBITMQ_USER:-guest}
+      - RABBITMQ_PASS=${RABBITMQ_PASS:-guest}
+      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-photo-uploads}
+      
+      # MySQL Configuration (external service)
+      - MYSQL_HOST=${MYSQL_HOST:-localhost}
+      - MYSQL_PORT=${MYSQL_PORT:-3306}
+      - MYSQL_USER=${MYSQL_USER:-root}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-bee_detection}
+      
+      # Processing Configuration
+      - BACKGROUND_SIZE=${BACKGROUND_SIZE:-15}
+      - CROP_POLYGON_FILE=crop_polygon.pkl
+      - OUTPUT_DIR=output
+      - SAVE_INTERMEDIATE=${SAVE_INTERMEDIATE:-true}
+      - BACKGROUND_UPDATE_FREQ=${BACKGROUND_UPDATE_FREQ:-1}
+      - HIVE_ID=${HIVE_ID}
+      
+      # Detection Configuration
+      - MIN_BEE_AREA=${MIN_BEE_AREA:-20}
+      - MAX_BEE_AREA=${MAX_BEE_AREA:-8000}
+      - MIN_ASPECT_RATIO=${MIN_ASPECT_RATIO:-0.3}
+      - MAX_ASPECT_RATIO=${MAX_ASPECT_RATIO:-3.0}
+      - MIN_SOLIDITY=${MIN_SOLIDITY:-0.3}
+      
+    volumes:
+      - ./input_photos:/app/input_photos:ro  # Mount input photos as read-only
+      - ./output:/app/output                 # Mount output directory
+      - ./crop_polygon.pkl:/app/crop_polygon.pkl:ro  # Mount crop polygon
+      
+    restart: unless-stopped
+    
+    # Use external network if RabbitMQ and MySQL are in separate containers
+    # network_mode: "host"  # Uncomment if using host networking
+    
+    # Or specify external network
+    networks:
+      - external-services
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# If using external network (when RabbitMQ and MySQL are in separate containers)
+networks:
+  external-services:
+    external: true
+    name: ${EXTERNAL_NETWORK_NAME:-bee-network}
+
+# Alternative: if services are on the same Docker network
+# networks:
+#   default:
+#     external: true
+#     name: ${EXTERNAL_NETWORK_NAME:-bee-network}

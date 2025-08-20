@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import base64
 import pickle
+import os
 from datetime import datetime
 from pathlib import Path
 from collections import deque
@@ -14,7 +15,7 @@ from manual_cropper import ManualCropper
 from image_processor import ImageProcessor
 from bee_detector import BeeDetector
 from bee_database import BeeDatabase
-from rabbitmq_config import RABBITMQ_CONFIG, PROCESSING_CONFIG, DETECTION_CONFIG
+from rabbitmq_config_docker import RABBITMQ_CONFIG, PROCESSING_CONFIG, DETECTION_CONFIG
 
 
 class RabbitMQBeeProcessor:
@@ -38,10 +39,24 @@ class RabbitMQBeeProcessor:
         self.channel = None
         
         self.output_dir = Path(self.processing_config['output_dir'])
-        if self.output_dir.exists():
-            import shutil
-            shutil.rmtree(self.output_dir)
+        
+        # Create output directory if it doesn't exist
         self.output_dir.mkdir(exist_ok=True)
+        
+        # Clean existing files in output directory (Docker volume safe)
+        if self.output_dir.exists() and self.output_dir.is_dir():
+            try:
+                import shutil
+                # Remove only the contents, not the directory itself (Docker volume compatibility)
+                for item in self.output_dir.iterdir():
+                    if item.is_file():
+                        item.unlink()
+                    elif item.is_dir():
+                        shutil.rmtree(item)
+                print(f"🧹 Cleaned output directory: {self.output_dir}")
+            except Exception as e:
+                print(f"⚠️  Could not clean output directory: {e}")
+                print("   This is normal if using Docker volumes")
                 
     def load_crop_polygon(self, first_image=None):
         """Load or create crop polygon"""
@@ -281,9 +296,18 @@ class RabbitMQBeeProcessor:
         if not self.connect_to_rabbitmq():
             return False
         
-        db_path = self.processing_config.get('database_path', 'bee_detection.db')
+        # MySQL database configuration
+        db_config = {
+            'host': os.getenv('MYSQL_HOST', 'localhost'),
+            'port': int(os.getenv('MYSQL_PORT', '3306')),
+            'user': os.getenv('MYSQL_USER', 'root'),
+            'password': os.getenv('MYSQL_PASSWORD', ''),
+            'database': os.getenv('MYSQL_DATABASE', 'bee_detection'),
+            'charset': 'utf8mb4',
+            'collation': 'utf8mb4_unicode_ci'
+        }
         hive_id = self.processing_config.get('hive_id', None)
-        self.bee_database = BeeDatabase(db_path, hive_id)
+        self.bee_database = BeeDatabase(db_config, hive_id)
         
         if not self.crop_polygon:
             self.load_crop_polygon()

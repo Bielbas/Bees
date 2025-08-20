@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: bee-rabbitmq
+    ports:
+      - "5672:5672"      # RabbitMQ main port
+      - "15672:15672"    # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - bee-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  bee-processor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bee-processor
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./input_photos:/app/input_photos:ro  # Mount input photos as read-only
+      - ./output:/app/output                 # Mount output directory
+      - ./crop_polygon.pkl:/app/crop_polygon.pkl:ro  # Mount crop polygon if exists
+      - ./bee_detection.db:/app/bee_detection.db     # Mount database file
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - PYTHONUNBUFFERED=1
+    networks:
+      - bee-network
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+
+networks:
+  bee-network:
+    driver: bridge

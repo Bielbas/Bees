@@ -1,5 +1,5 @@
 from rabbitmq_processor import RabbitMQBeeProcessor
-from rabbitmq_config import RABBITMQ_CONFIG
+from rabbitmq_config_docker import RABBITMQ_CONFIG
 
 
 def main():
