@@ -15,7 +15,7 @@ from manual_cropper import ManualCropper
 from image_processor import ImageProcessor
 from bee_detector import BeeDetector
 from bee_database import BeeDatabase
-from rabbitmq_config import RABBITMQ_CONFIG, PROCESSING_CONFIG, DETECTION_CONFIG
+from rabbitmq_config_docker import RABBITMQ_CONFIG, PROCESSING_CONFIG, DETECTION_CONFIG
 
 
 class RabbitMQBeeProcessor:
