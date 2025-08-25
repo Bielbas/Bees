@@ -32,6 +32,7 @@ function initializeChart() {
                 tension: 0.4,
                 pointBackgroundColor: '#F4E09C',
                 pointBorderColor: '#E8DCC6',
+                pointRadius: 1,
                 pointHoverBackgroundColor: '#E8DCC6',
                 pointHoverBorderColor: '#F4E09C'
             }]
