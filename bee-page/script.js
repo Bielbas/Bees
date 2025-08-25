@@ -83,6 +83,15 @@ function initializeChart() {
             interaction: {
                 intersect: false,
                 mode: 'index'
+            },
+            onClick: (event, elements) => {
+                if (elements.length > 0) {
+                    const index = elements[0].index;
+                    const selectedDetection = chart._sortedDetections[index];
+                    if (selectedDetection) {
+                        showDetectionImage(selectedDetection);
+                    }
+                }
             }
         }
     });
@@ -237,6 +246,7 @@ function updateChart(detections) {
     
     // Sort by timestamp
     const sortedDetections = detections.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    chart._sortedDetections = sortedDetections;
     
     // Prepare chart data
     const labels = sortedDetections.map(d => formatTime(new Date(d.timestamp)));
@@ -266,6 +276,16 @@ function updateChart(detections) {
     chart.options.plugins.title.text = title;
     
     chart.update();
+}
+
+function showDetectionImage(detection) {
+    const imageContainer = document.getElementById('imageContainer');
+    const imageElement = document.getElementById('detectionImage');
+
+    const imageUrl = '${API_BASE_URL}/detections/image/${detection.id}';
+
+    imageElement.src = imageUrl;
+    imageContainer.style.display = 'block';
 }
 
 // Utility function to format date

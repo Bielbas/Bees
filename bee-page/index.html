@@ -126,50 +126,56 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🐝 Bee Detection Dashboard</h1>
-        
-        <div class="controls">
-            <label for="hiveSelect">Hive:</label>
-            <select id="hiveSelect">
-                <option value="">All Hives</option>
-            </select>
-            
-            <label for="dateSelect">Date:</label>
-            <input type="date" id="dateSelect" />
-            
-            <button onclick="setToday()">Today</button>
-            <button onclick="setLatestDate()">Latest Data</button>
-            <button onclick="refreshData()">Refresh Data</button>
-        </div>
-        
-        <div id="error" class="error" style="display: none;"></div>
-        <div id="loading" class="loading">Loading data...</div>
+<div class="container">
+    <h1>🐝 Bee Detection Dashboard</h1>
 
-        <div class="stats" id="stats" style="display: none;">
-            <div class="stat-card">
-                <div class="stat-value" id="totalDetections">-</div>
-                <div class="stat-label">Total Detections</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="avgCoverage">-</div>
-                <div class="stat-label">Avg Coverage (%)</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="uniqueHives">-</div>
-                <div class="stat-label">Active Hives</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="lastDetection">-</div>
-                <div class="stat-label">Last Detection</div>
-            </div>
+    <div class="controls">
+        <label for="hiveSelect">Hive:</label>
+        <select id="hiveSelect">
+            <option value="">All Hives</option>
+        </select>
+
+        <label for="dateSelect">Date:</label>
+        <input type="date" id="dateSelect"/>
+
+        <button onclick="setToday()">Today</button>
+        <button onclick="setLatestDate()">Latest Data</button>
+        <button onclick="refreshData()">Refresh Data</button>
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="loading" class="loading">Loading data...</div>
+
+    <div class="stats" id="stats" style="display: none;">
+        <div class="stat-card">
+            <div class="stat-value" id="totalDetections">-</div>
+            <div class="stat-label">Total Detections</div>
         </div>
-        
-        <div class="chart-container">
-            <canvas id="beeChart"></canvas>
+        <div class="stat-card">
+            <div class="stat-value" id="avgCoverage">-</div>
+            <div class="stat-label">Avg Coverage (%)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="uniqueHives">-</div>
+            <div class="stat-label">Active Hives</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="lastDetection">-</div>
+            <div class="stat-label">Last Detection</div>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="chart-container">
+        <canvas id="beeChart"></canvas>
+    </div>
+
+    <div id="imageContainer" style="display: none; text-align: center; margin-top: 20px;">
+        <h3 style="color: #E8DCC6;">Detection Image</h3>
+        <img id="detectionImage" src="" alt="Detection Image"
+             style="max-width: 100%; border-radius: 8px; border: 2px solid #4A453D;"/>
+    </div>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
