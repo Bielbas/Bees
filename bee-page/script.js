@@ -246,7 +246,6 @@ function updateChart(detections) {
     
     // Sort by timestamp
     const sortedDetections = detections.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    chart._sortedDetections = sortedDetections.reverse();
     
     // Prepare chart data
     const labels = sortedDetections.map(d => formatTime(new Date(d.timestamp)));
@@ -274,7 +273,7 @@ function updateChart(detections) {
     }
     
     chart.options.plugins.title.text = title;
-    
+    chart._sortedDetections = sortedDetections.reverse();
     chart.update();
 }
 
