@@ -282,7 +282,7 @@ function showDetectionImage(detection) {
     const imageContainer = document.getElementById('imageContainer');
     const imageElement = document.getElementById('detectionImage');
 
-    const imageUrl = '${API_BASE_URL}/detections/image/${detection.id}';
+    const imageUrl = `${API_BASE_URL}/detections/image/${detection.id}`;
 
     imageElement.src = imageUrl;
     imageContainer.style.display = 'block';
