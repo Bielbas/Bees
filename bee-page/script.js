@@ -27,7 +27,7 @@ function initializeChart() {
                 data: [],
                 borderColor: '#F4E09C',
                 backgroundColor: 'rgba(244, 224, 156, 0.2)',
-                borderWidth: 3,
+                borderWidth: 1,
                 fill: true,
                 tension: 0.4,
                 pointBackgroundColor: '#F4E09C',
@@ -47,6 +47,21 @@ function initializeChart() {
                 },
                 legend: {
                     display: true
+                },
+                zoom: {
+                    zoom: {
+                        wheel: {
+                            enabled: true
+                        },
+                        pinch: {
+                            enabled: true
+                        },
+                        mode: 'x'
+                    },
+                    pan: {
+                        enabled: true,
+                        mode: 'x'
+                    }
                 }
             },
             scales: {
