@@ -87,7 +87,7 @@ function initializeChart() {
             onClick: (event, elements) => {
                 if (elements.length > 0) {
                     const index = elements[0].index;
-                    const selectedDetection = chart._sortedDetections.toSorted((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[index];
+                    const selectedDetection = chart._sortedDetections[index];
                     if (selectedDetection) {
                         showDetectionImage(selectedDetection);
                     }
