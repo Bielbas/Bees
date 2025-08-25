@@ -245,8 +245,8 @@ function updateChart(detections) {
     if (!chart) return;
     
     // Sort by timestamp
-    const sortedDetections = detections.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    chart._sortedDetections = sortedDetections.toReversed();
+    const sortedDetections = detections.toSorted((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    chart._sortedDetections = detections.toSorted((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
     // Prepare chart data
     const labels = sortedDetections.map(d => formatTime(new Date(d.timestamp)));
