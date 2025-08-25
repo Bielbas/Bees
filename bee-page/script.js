@@ -87,7 +87,7 @@ function initializeChart() {
             onClick: (event, elements) => {
                 if (elements.length > 0) {
                     const index = elements[0].index;
-                    const selectedDetection = allDetections.toSorted((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[index];
+                    const selectedDetection = chart._sortedDetections.toSorted((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[index];
                     if (selectedDetection) {
                         showDetectionImage(selectedDetection);
                     }
@@ -246,6 +246,7 @@ function updateChart(detections) {
     
     // Sort by timestamp
     const sortedDetections = detections.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    chart._sortedDetections = sortedDetections.toReversed();
     
     // Prepare chart data
     const labels = sortedDetections.map(d => formatTime(new Date(d.timestamp)));
