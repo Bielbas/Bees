@@ -7,7 +7,7 @@ import uuid
 
 
 class BeeDatabase:
-    """Manages MySQL database for bee detection results."""
+    """Manages MySQL database for bee detection results"""
     
     def __init__(self, db_config=None, hive_id=None):
         """Initialize database connection with MySQL configuration"""
@@ -24,7 +24,6 @@ class BeeDatabase:
         self.connection = None
         self.hive_id = hive_id
         self._initialize_database()
-        print(f"🗃️ Database: MySQL at {self.db_config['host']}:{self.db_config['port']}/{self.db_config['database']}")
     
     def _set_hive_id(self, filename):
         """Set hive_id from the last character of the first photo"""
@@ -41,17 +40,15 @@ class BeeDatabase:
             self.connection = mysql.connector.connect(**self.db_config)
             
             if self.connection.is_connected():
-                print(f"✅ Connected to MySQL database: {self.db_config['database']}")
                 self._create_tables()
             else:
                 raise Exception("Failed to connect to MySQL database")
                         
         except Error as e:
-            print(f"❌ Database connection error: {e}")
             print("Make sure MySQL is running and credentials are correct:")
-            print(f"  Host: {self.db_config['host']}:{self.db_config['port']}")
-            print(f"  Database: {self.db_config['database']}")
-            print(f"  User: {self.db_config['user']}")
+            print(f"Host: {self.db_config['host']}:{self.db_config['port']}")
+            print(f"Database: {self.db_config['database']}")
+            print(f"User: {self.db_config['user']}")
             raise
     
     
@@ -59,15 +56,12 @@ class BeeDatabase:
         """Create necessary tables"""
 
         cursor = self.connection.cursor()
-        
-        # Create database if it doesn't exist
         cursor.execute(f"CREATE DATABASE IF NOT EXISTS {self.db_config['database']} "
                       f"CHARACTER SET {self.db_config['charset']} "
                       f"COLLATE {self.db_config['collation']}")
         
         cursor.execute(f"USE {self.db_config['database']}")
         
-        # Create bee_detections table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS bee_detections (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -128,4 +122,4 @@ class BeeDatabase:
         """Close database connection"""
         if self.connection and self.connection.is_connected():
             self.connection.close()
-            print("🔌 MySQL database connection closed")
+            print("database connection closed")

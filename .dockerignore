@@ -1,5 +1,3 @@
-# Docker ignore file for bee detection project
-
 # Python
 __pycache__/
 *.py[cod]
@@ -13,7 +11,7 @@ venv/
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Testing files (excluded from Docker image)
+# Testing files
 test_sender.py
 check_rabbitmq.py
 
@@ -46,7 +44,3 @@ Thumbs.db
 temp_*
 *.tmp
 
-# Large data files that should be mounted as volumes
-# input_photos/
-# output/
-# *.db

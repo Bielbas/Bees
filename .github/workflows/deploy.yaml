@@ -23,14 +23,11 @@ jobs:
             cd ~/bee-monitoring/Bees
             git pull origin main
           
-            # Build Docker image
             docker build --file Dockerfile.ultra-minimal -t image-processor .
           
-            # Stop old container if running
             docker stop image-processor || true
             docker rm image-processor || true
           
-            # Run new container
             docker run -d --network=caddy_net --name image-processor -e RABBITMQ_HOST=rabbitmq \
             -e RABBITMQ_PORT=5672 \
             -e RABBITMQ_USER=guest \

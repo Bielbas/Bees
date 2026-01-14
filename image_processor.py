@@ -16,6 +16,7 @@ class ImageProcessor:
         pts = np.array(crop_polygon, np.int32)
         self.polygon_area = cv2.contourArea(pts)
     
+    
     def crop_image_array(self, image):
         """Crop image array using the stored polygon"""
 
@@ -31,6 +32,7 @@ class ImageProcessor:
         
         return cropped_image, cropped_mask
     
+
     def create_background(self, image_list):
         """
         Create background image from multiple images with improved robustness.

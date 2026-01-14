@@ -1,6 +1,6 @@
 import os
 
-# RabbitMQ configuration with Docker support
+
 RABBITMQ_CONFIG = {
     'host': os.getenv('RABBITMQ_HOST', 'localhost'),
     'port': int(os.getenv('RABBITMQ_PORT', '5672')),         
@@ -20,7 +20,6 @@ PROCESSING_CONFIG = {
     'hive_id': os.getenv('HIVE_ID', None)  
 }
 
-# MySQL configuration for VPS deployment
 MYSQL_CONFIG = {
     'host': os.getenv('MYSQL_HOST', 'localhost'),
     'port': int(os.getenv('MYSQL_PORT', '3306')),

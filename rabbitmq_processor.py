@@ -39,25 +39,21 @@ class RabbitMQBeeProcessor:
         self.channel = None
         
         self.output_dir = Path(self.processing_config['output_dir'])
-        
-        # Create output directory if it doesn't exist
         self.output_dir.mkdir(exist_ok=True)
         
-        # Clean existing files in output directory (Docker volume safe)
         if self.output_dir.exists() and self.output_dir.is_dir():
             try:
                 import shutil
-                # Remove only the contents, not the directory itself (Docker volume compatibility)
                 for item in self.output_dir.iterdir():
                     if item.is_file():
                         item.unlink()
                     elif item.is_dir():
                         shutil.rmtree(item)
-                print(f"🧹 Cleaned output directory: {self.output_dir}")
+                print(f"Clean: {self.output_dir}")
             except Exception as e:
-                print(f"⚠️  Could not clean output directory: {e}")
-                print("   This is normal if using Docker volumes")
+                print(f"Could not clean: {e}")
                 
+
     def load_crop_polygon(self, first_image=None):
         """Load or create crop polygon"""
 
@@ -79,7 +75,7 @@ class RabbitMQBeeProcessor:
                     
                     Path(temp_path).unlink()
                 else:
-                    print("Can't define crop polygon from first image!")
+                    print("Can't define crop polygon from first image")
                     return False
             else:
                 print("Missing polygon file and first image")
@@ -90,6 +86,7 @@ class RabbitMQBeeProcessor:
             return True
         return False
     
+
     def connect_to_rabbitmq(self):
         """Connect with RabbitMQ."""
 
@@ -152,6 +149,7 @@ class RabbitMQBeeProcessor:
             print(f"Image decoding error: {e}")
             return None, None
     
+
     def create_background_from_buffer(self):
         """Create background image from current image buffer"""
         
@@ -185,7 +183,6 @@ class RabbitMQBeeProcessor:
         Returns:
             dict: Detection results or None
         """
-        # Use provided timestamp or fall back to current time only if none provided
         if timestamp is None:
             timestamp = datetime.now().isoformat()
         
@@ -269,7 +266,6 @@ class RabbitMQBeeProcessor:
                 ch.basic_ack(delivery_tag=method.delivery_tag)
                 return
             
-            # Extract timestamp from RabbitMQ properties
             timestamp = None
             if properties and hasattr(properties, 'headers') and properties.headers:
                 if 'timestamp' in properties.headers:
@@ -299,13 +295,13 @@ class RabbitMQBeeProcessor:
             print(f"Message processing error: {e}")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
     
+
     def start_consuming(self):
         """Start listening for messages from RabbitMQ"""
 
         if not self.connect_to_rabbitmq():
             return False
         
-        # MySQL database configuration
         db_config = {
             'host': os.getenv('MYSQL_HOST', 'localhost'),
             'port': int(os.getenv('MYSQL_PORT', '3306')),
@@ -339,6 +335,7 @@ class RabbitMQBeeProcessor:
             return False
         
         return True
+    
     
     def stop_consuming(self):
         """Stop listening and save results"""
