@@ -39,6 +39,11 @@ class BeeDetector:
             min_area = self.min_area
         if max_area is None:
             max_area = self.max_area
+        
+        # Ensure image matches background size
+        if image.shape[:2] != self.background.shape[:2]:
+            image = cv2.resize(image, (self.background.shape[1], self.background.shape[0]))
+        
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         
         gray_blurred = cv2.GaussianBlur(gray, (3, 3), 0)

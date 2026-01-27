@@ -33,6 +33,8 @@ results.csv
 !example_*.jpg
 local/
 untitled folder/
+tests/
+videos/
 
 # IDE
 .vscode/
