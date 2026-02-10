@@ -38,7 +38,7 @@ class RabbitMQBeeProcessor:
         self.channel = None
         
         self.output_dir = Path(self.processing_config['output_dir'])
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         
         if self.output_dir.exists() and self.output_dir.is_dir():
             try:

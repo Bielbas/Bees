@@ -26,10 +26,8 @@ RUN pip install --no-cache-dir scikit-image || echo "scikit-image installation f
 COPY *.py ./
 COPY crop_polygon.pkl* ./
 
-RUN mkdir -p output input_photos
-
 RUN adduser --disabled-password --gecos '' beeuser
-RUN chown -R beeuser:beeuser /app
+RUN mkdir -p output input_photos && chown -R beeuser:beeuser /app
 USER beeuser
 
 CMD ["python", "rabbitmq_processor_run.py"]
