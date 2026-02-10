@@ -11,7 +11,6 @@ from collections import deque
 import threading
 import time
 
-from manual_cropper import ManualCropper
 from image_processor import ImageProcessor
 from bee_detector import BeeDetector
 from bee_database import BeeDatabase
