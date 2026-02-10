@@ -24,7 +24,6 @@ RUN pip install --no-cache-dir "numpy>=1.21.0,<2.0.0" && \
 RUN pip install --no-cache-dir scikit-image || echo "scikit-image installation failed, continuing..."
 
 COPY *.py ./
-COPY crop_polygon.pkl* ./
 
 RUN adduser --disabled-password --gecos '' beeuser
 RUN mkdir -p output input_photos && chown -R beeuser:beeuser /app

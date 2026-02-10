@@ -39,7 +39,6 @@ jobs:
             -e MYSQL_PASSWORD=${{ secrets.SQL_PASSWORD }} \
             -e MYSQL_DATABASE=bees \
             -e BACKGROUND_SIZE=15 \
-            -e CROP_POLYGON_FILE=crop_polygon.pkl \
             -e OUTPUT_DIR=output \
             -e SAVE_INTERMEDIATE=true \
             -e BACKGROUND_UPDATE_FREQ=1 \
@@ -51,6 +50,5 @@ jobs:
             -e MIN_SOLIDITY=0.3 \
             -v ./input_photos:/app/input_photos:ro \
             -v ./output:/app/output \
-            -v ./crop_polygon.pkl:/app/crop_polygon.pkl:ro \
             image-processor
           EOF

@@ -13,7 +13,6 @@ RABBITMQ_CONFIG = {
 
 PROCESSING_CONFIG = {
     'background_size': int(os.getenv('BACKGROUND_SIZE', '15')),        
-    'crop_polygon_file': os.getenv('CROP_POLYGON_FILE', 'crop_polygon.pkl'),  
     'output_dir': os.getenv('OUTPUT_DIR', 'output'),       
     'save_intermediate': os.getenv('SAVE_INTERMEDIATE', 'True').lower() == 'true',   
     'background_update_frequency': int(os.getenv('BACKGROUND_UPDATE_FREQ', '1')),

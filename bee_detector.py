@@ -95,11 +95,13 @@ class BeeDetector:
     
     def calculate_total_area(self, image):
         """Calculate total valid image area excluding black background"""
-
         if self.valid_area_pixels:
             return self.valid_area_pixels
-        else:
-            return image.shape[0] * image.shape[1]
+        
+        # Calculate from image - count non-black pixels
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        _, mask = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
+        return np.sum(mask > 0)
     
     def analyze_image(self, image, filename, adaptive_threshold=True):
         """

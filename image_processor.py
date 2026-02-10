@@ -6,35 +6,25 @@ from pathlib import Path
 class ImageProcessor:
     """Handles image cropping and background generation."""
     
-    def __init__(self, crop_polygon):
+    def __init__(self, crop_polygon=None):
         """
         Initialize with crop polygon coordinates.
         Args:
-            crop_polygon: List of (x, y) points or None to disable cropping
+            crop_polygon: List of (x, y) points or None to disable cropping (images pre-processed)
         """
         self.crop_polygon = crop_polygon
-        if crop_polygon is not None:
-            pts = np.array(crop_polygon, np.int32)
-            self.polygon_area = cv2.contourArea(pts)
-        else:
-            self.polygon_area = None
+        self.polygon_area = None
     
     
     def crop_image_array(self, image):
-        """Crop image array using the stored polygon (or return original if no polygon)"""
-        
-        # If no polygon, return the image as-is
-        if self.crop_polygon is None:
-            return image, None
-
-        mask = np.zeros(image.shape[:2], dtype=np.uint8)
-        pts = np.array(self.crop_polygon, np.int32)
-        cv2.fillPoly(mask, [pts], 255)
-        
-        result = cv2.bitwise_and(image, image, mask=mask)
-        
-
-        return result, mask
+        """Return image as-is (images are pre-processed with polygon mask)"""
+        return image, None
+    
+    def calculate_valid_area(self, image):
+        """Calculate valid (non-black) area in preprocessed image"""
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        _, mask = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
+        return np.sum(mask > 0)
     
 
     def create_background(self, image_list):

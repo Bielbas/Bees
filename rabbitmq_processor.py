@@ -3,7 +3,6 @@ import json
 import cv2
 import numpy as np
 import base64
-import pickle
 import os
 from datetime import datetime
 from pathlib import Path
@@ -26,8 +25,7 @@ class RabbitMQBeeProcessor:
         self.config = rabbit_config or RABBITMQ_CONFIG
         self.processing_config = PROCESSING_CONFIG
         
-        self.crop_polygon = None
-        self.image_processor = None
+        self.image_processor = ImageProcessor()  # No polygon - images pre-processed
         self.bee_detector = None
         self.bee_database = None 
         self.image_buffer = deque(maxlen=self.processing_config['background_size'])
@@ -51,40 +49,6 @@ class RabbitMQBeeProcessor:
                 print(f"Clean: {self.output_dir}")
             except Exception as e:
                 print(f"Could not clean: {e}")
-                
-
-    def load_crop_polygon(self, first_image=None):
-        """Load or create crop polygon"""
-
-        polygon_file = self.processing_config['crop_polygon_file']
-        
-        try:
-            with open(polygon_file, "rb") as f:
-                self.crop_polygon = pickle.load(f)
-        except FileNotFoundError:
-            if first_image is not None:
-                temp_path = "temp_first_image.jpg"
-                cv2.imwrite(temp_path, first_image)
-                cropper = ManualCropper()
-                self.crop_polygon = cropper.get_crop_polygon(temp_path)
-                
-                if self.crop_polygon:
-                    with open(polygon_file, "wb") as f:
-                        pickle.dump(self.crop_polygon, f)
-                    
-                    Path(temp_path).unlink()
-                else:
-                    print("Can't define crop polygon from first image")
-                    return False
-            else:
-                print("Missing polygon file and first image")
-                return False
-        
-        if self.crop_polygon:
-            self.image_processor = ImageProcessor(self.crop_polygon)
-            return True
-        return False
-    
 
     def connect_to_rabbitmq(self):
         """Connect with RabbitMQ."""
@@ -193,22 +157,16 @@ class RabbitMQBeeProcessor:
             if not filename.lower().endswith(('.jpg', '.jpeg', '.png')):
                 filename = f"{filename}.jpg"
                 
-        cropped_img, crop_mask = self.image_processor.crop_image_array(image)
-        if cropped_img is None:
-            print("Failed to crop image")
-            return None
-        
-        if self.processing_config['save_intermediate']:
-            cropped_path = self.output_dir / f"cropped_{filename}"
-            cv2.imwrite(str(cropped_path), cropped_img)
-        
-        self.image_buffer.append(cropped_img)
+        # Images arrive pre-processed with polygon mask
+        self.image_buffer.append(image)
         
         if self.bee_detector is None:
             if len(self.image_buffer) >= self.processing_config['background_size']:
                 background = self.create_background_from_buffer()
                 if background is not None:
-                    self.bee_detector = BeeDetector(background, self.image_processor.polygon_area)
+                    # Calculate valid area from first image
+                    valid_area = self.image_processor.calculate_valid_area(image)
+                    self.bee_detector = BeeDetector(background, valid_area)
                 else:
                     print("Failed to create first background")
                     return None
@@ -223,21 +181,22 @@ class RabbitMQBeeProcessor:
                     self.bee_detector.update_background(background)
         
         if self.bee_detector is not None:
-            result = self.bee_detector.analyze_image(cropped_img, filename)
+            result = self.bee_detector.analyze_image(image, filename)
             if result:
                 result['original_timestamp'] = timestamp
                 result['timestamp'] = timestamp 
                 result['filename'] = filename
                 result['image_count'] = self.image_count
-                result['total_area'] = self.image_processor.polygon_area
-                result['bee_area'] = int(result['bee_percentage'] * self.image_processor.polygon_area / 100)
+                valid_area = self.image_processor.calculate_valid_area(image)
+                result['total_area'] = valid_area
+                result['bee_area'] = int(result['bee_percentage'] * valid_area / 100)
                 result['background_updated'] = (self.image_count % self.processing_config['background_update_frequency'] == 0)
                 
                 if self.processing_config['save_intermediate']:
                     mask_path = self.output_dir / f"bee_mask_{filename}"
                     cv2.imwrite(str(mask_path), result['bee_mask'])
                     
-                    vis = self.bee_detector.create_visualization(cropped_img, result['bee_mask'], [])
+                    vis = self.bee_detector.create_visualization(image, result['bee_mask'], [])
                     vis_path = self.output_dir / f"visualization_{filename}"
                     cv2.imwrite(str(vis_path), vis)
                 
@@ -278,12 +237,6 @@ class RabbitMQBeeProcessor:
                     if isinstance(hive_id, bytes):
                         hive_id = hive_id.decode('utf-8')
             
-            if self.crop_polygon is None:
-                if not self.load_crop_polygon(image):
-                    print("Failed to set crop polygon - stopping processing")
-                    ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-                    return
-            
             self.image_count += 1
             result = self.process_single_image(image, timestamp=timestamp, filename=filename)
             
@@ -323,9 +276,6 @@ class RabbitMQBeeProcessor:
             'collation': 'utf8mb4_unicode_ci'
         }
         self.bee_database = BeeDatabase(db_config, hive_id=None)
-        
-        if not self.crop_polygon:
-            self.load_crop_polygon()
         
         try:
             self.channel.basic_qos(prefetch_count=1)
