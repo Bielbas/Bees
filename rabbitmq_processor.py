@@ -267,11 +267,17 @@ class RabbitMQBeeProcessor:
                 return
             
             timestamp = None
+            hive_id = None
             if properties and hasattr(properties, 'headers') and properties.headers:
                 if 'timestamp' in properties.headers:
                     timestamp = properties.headers['timestamp']
                     if isinstance(timestamp, bytes):
                         timestamp = timestamp.decode('utf-8')
+                
+                if 'HiveId' in properties.headers:
+                    hive_id = properties.headers['HiveId']
+                    if isinstance(hive_id, bytes):
+                        hive_id = hive_id.decode('utf-8')
             
             if self.crop_polygon is None:
                 if not self.load_crop_polygon(image):
@@ -286,7 +292,13 @@ class RabbitMQBeeProcessor:
                 self.results.append(result)
                 
                 if self.bee_database:
+                    if hive_id:
+                        self.bee_database.hive_id = hive_id
+                    
                     self.bee_database.insert_detection_result(result)
+                    
+                    if hive_id:
+                        self.bee_database.hive_id = None
                 
             
             ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -311,8 +323,7 @@ class RabbitMQBeeProcessor:
             'charset': 'utf8mb4',
             'collation': 'utf8mb4_unicode_ci'
         }
-        hive_id = self.processing_config.get('hive_id', None)
-        self.bee_database = BeeDatabase(db_config, hive_id)
+        self.bee_database = BeeDatabase(db_config, hive_id=None)
         
         if not self.crop_polygon:
             self.load_crop_polygon()

@@ -26,12 +26,12 @@ class BeeDatabase:
         self._initialize_database()
     
     def _set_hive_id(self, filename):
-        """Set hive_id from the last character of the first photo"""
+        """Set hive_id from the part before the first underscore"""
 
         if self.hive_id is None: 
             name_without_ext = Path(filename).stem
-            last_char = name_without_ext[-1] if name_without_ext else "X"
-            self.hive_id = f"HIVE_{last_char}"
+            prefix = name_without_ext.split('_')[0] if '_' in name_without_ext else name_without_ext
+            self.hive_id = f"HIVE_{prefix}"
     
     def _initialize_database(self):
         """Create database connection and tables if they don't exist"""

@@ -3,14 +3,14 @@ import numpy as np
 from datetime import datetime
 
 
-DETECTION_THRESHOLDS = [15, 25, 35, 45]
-MIN_BEE_AREA = 20
-MAX_BEE_AREA = 8000
-COLOR_LOWER_BEE = [5, 20, 20]
-COLOR_UPPER_BEE = [25, 255, 180]
+DETECTION_THRESHOLDS = [8, 18, 28, 38]
+MIN_BEE_AREA = 50
+MAX_BEE_AREA = 2500
+COLOR_LOWER_BEE = [5, 18, 18]
+COLOR_UPPER_BEE = [25, 255, 190]
 MIN_ASPECT_RATIO = 0.3
 MAX_ASPECT_RATIO = 3.0
-MIN_SOLIDITY = 0.3
+MIN_SOLIDITY = 0.25
 
 
 class BeeDetector:
@@ -147,7 +147,7 @@ class BeeDetector:
         
         color_mask = cv2.inRange(hsv, self.color_lower_bee, self.color_upper_bee)
         
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
         color_mask = cv2.morphologyEx(color_mask, cv2.MORPH_OPEN, kernel)
         color_mask = cv2.morphologyEx(color_mask, cv2.MORPH_CLOSE, kernel)
         
