@@ -1,0 +1,55 @@
+name: Build & Deploy to VPS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_KEY }}
+
+      - name: Copy project to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'EOF'
+            cd ~/bee-monitoring/Bees
+            git pull origin main
+          
+            docker build --file Dockerfile.ultra-minimal -t image-processor .
+          
+            docker stop image-processor || true
+            docker rm image-processor || true
+          
+            docker run -d --network=caddy_net --name image-processor -e RABBITMQ_HOST=rabbitmq \
+            -e RABBITMQ_PORT=5672 \
+            -e RABBITMQ_USER=guest \
+            -e RABBITMQ_PASS=guest \
+            -e RABBITMQ_QUEUE=photo-uploads \
+            -e MYSQL_HOST=mysql \
+            -e MYSQL_PORT=3306 \
+            -e MYSQL_USER=${{ SECRETS.SQL_USER }} \
+            -e MYSQL_PASSWORD=${{ secrets.SQL_PASSWORD }} \
+            -e MYSQL_DATABASE=bees \
+            -e BACKGROUND_SIZE=15 \
+            -e OUTPUT_DIR=output \
+            -e SAVE_INTERMEDIATE=false \
+            -e BACKGROUND_UPDATE_FREQ=1 \
+            -e HIVE_ID=1 \
+            -e MIN_BEE_AREA=20 \
+            -e MAX_BEE_AREA=8000 \
+            -e MIN_ASPECT_RATIO=0.3 \
+            -e MAX_ASPECT_RATIO=3.0 \
+            -e MIN_SOLIDITY=0.3 \
+            -v ./input_photos:/app/input_photos:ro \
+            -v ./output:/app/output \
+            image-processor
+          EOF

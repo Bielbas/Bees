@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bee Detection Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1C1B17;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #3A342B;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #E8DCC6;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+        
+        .chart-container {
+            position: relative;
+            min-height: 400px;
+            margin-bottom: 5px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .controls label {
+            color: #E8DCC6;
+            font-weight: 500;
+        }
+        
+        select, button, input[type="date"] {
+            padding: 10px 14px;
+            border: 1px solid #4A453D;
+            border-radius: 6px;
+            font-size: 14px;
+            background-color: #3A342B;
+            color: #E8DCC6;
+        }
+        
+        button {
+            background-color: #5D5347;
+            color: #E8DCC6;
+            cursor: pointer;
+            border: 1px solid #4A453D;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background-color: #8B7355;
+            border-color: #A67B5B;
+            color: #F4E09C;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #E8DCC6;
+            font-style: italic;
+        }
+        
+        .error {
+            color: #D4A5A5;
+            text-align: center;
+            padding: 12px;
+            background-color: #3D2B2B;
+            border: 1px solid #5A3D3D;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #4A453D;
+            padding: 18px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #5D5347;
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-color: #6B6356;
+        }
+        
+        .stat-value {
+            font-size: 26px;
+            font-weight: 600;
+            color: #F4F0E8;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            color: #E8DCC6;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🐝 Bee Detection Dashboard 🐝</h1>
+
+    <div class="controls">
+        <label for="hiveSelect">Hive:</label>
+        <select id="hiveSelect">
+            <option value="">All Hives</option>
+        </select>
+
+        <label for="dateSelect">Date:</label>
+        <input type="date" id="dateSelect"/>
+
+        <button onclick="setToday()">Today</button>
+        <button onclick="setLatestDate()">Latest Data</button>
+        <button onclick="refreshData()">Refresh Data</button>
+    </div>
+
+    <div id="error" class="error" style="display: none;"></div>
+    <div id="loading" class="loading">Loading data</div>
+
+    <div class="stats" id="stats" style="display: none;">
+        <div class="stat-card">
+            <div class="stat-value" id="totalDetections">-</div>
+            <div class="stat-label">Total Detections</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avgCoverage">-</div>
+            <div class="stat-label">Avg Coverage (%)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="uniqueHives">-</div>
+            <div class="stat-label">Active Hives</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="lastDetection">-</div>
+            <div class="stat-label">Last Detection</div>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="beeChart"></canvas>
+    </div>
+
+    <div id="imageContainer" style="display: none; text-align: center; margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="color: #E8DCC6; margin: 0;">Detection Image</h3>
+            <button onclick="closeDetectionImage()" style="padding: 8px 16px; font-size: 16px; cursor: pointer;">✕ Close</button>
+        </div>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <img id="detectionImage" src="" alt="Detection Image"
+                 style="max-width: 100%; max-height: 70vh; border-radius: 8px; border: 2px solid #4A453D; object-fit: contain;"/>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

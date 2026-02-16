@@ -1,0 +1,32 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config \
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN pip install --no-cache-dir --upgrade pip
+
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir "numpy>=1.21.0,<2.0.0" && \
+    pip install --no-cache-dir opencv-python-headless==4.10.0.84 && \
+    pip install --no-cache-dir Pillow && \
+    pip install --no-cache-dir pika && \
+    pip install --no-cache-dir mysql-connector-python
+
+RUN pip install --no-cache-dir scikit-image || echo "scikit-image installation failed, continuing..."
+
+COPY *.py ./
+
+RUN adduser --disabled-password --gecos '' beeuser
+RUN mkdir -p output input_photos && chown -R beeuser:beeuser /app
+USER beeuser
+
+CMD ["python", "rabbitmq_processor_run.py"]
