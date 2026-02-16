@@ -248,30 +248,8 @@ function showDetectionImage(detection) {
     const imageElement = document.getElementById('detectionImage');
 
     const imageUrl = `${API_BASE_URL}/detections/image/${detection.id}`;
-
-    const applyTransform = function() {
-        if (imageElement.naturalHeight > imageElement.naturalWidth) {
-            imageElement.style.transform = 'rotate(90deg)';
-            imageElement.style.width = '70vh';
-            imageElement.style.height = 'auto';
-            imageElement.style.maxWidth = '70vh';
-            imageElement.style.maxHeight = '90vw';
-        } else {
-            imageElement.style.transform = 'none';
-            imageElement.style.width = 'auto';
-            imageElement.style.height = 'auto';
-            imageElement.style.maxWidth = '100%';
-            imageElement.style.maxHeight = '70vh';
-        }
-    };
     
-    imageElement.onload = applyTransform;
     imageElement.src = imageUrl;
-    
-    if (imageElement.complete && imageElement.naturalHeight > 0) {
-        applyTransform();
-    }
-    
     imageContainer.style.display = 'block';
 }
 
