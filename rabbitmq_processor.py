@@ -74,7 +74,8 @@ class RabbitMQBeeProcessor:
             parameters = pika.ConnectionParameters(
                 host=self.config['host'],
                 port=self.config['port'],
-                credentials=credentials
+                credentials=credentials,
+                retry_delay=10
             )
             
             self.connection = pika.BlockingConnection(parameters)
