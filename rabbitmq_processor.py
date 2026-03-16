@@ -2,6 +2,7 @@ import pika
 import cv2
 import numpy as np
 import os
+import time
 from datetime import datetime
 from pathlib import Path
 from collections import deque
@@ -281,10 +282,12 @@ class RabbitMQBeeProcessor:
                 print(f"Message acknowledged: {filename}")
             else:
                 print(f"Database insert failed for {filename}, requeueing message...")
+                time.sleep(5)
                 ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
             
         except Exception as e:
             print(f"Message processing error: {e}")
+            time.sleep(5)
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
             print(f"Message requeued due to error")
     
